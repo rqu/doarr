@@ -1,0 +1,114 @@
+#!/bin/sh
+
+compiler=g++
+implicit_flags='-shared -fPIC -fvisibility=hidden -O3'
+
+usage() {
+	echo "Usage: $0 SOURCE_FILE [-o OUTPUT_FILE] [COMPILER OPTIONS ...]" >&2
+	echo "- OUTPUT_FILE defaults to SOURCE_FILE.pch.cpp" >&2
+	echo "- OUTPUT_FILE may be a directory in which SOURCE_FILE.pch.cpp should be created" >&2
+	exit 1
+}
+
+source_file="$1"
+shift || usage
+
+if [ ! -r "$source_file" ]
+then
+	echo "Cannot read '$source_file'"
+	exit 1
+fi
+
+case "$1" in
+	(-o)
+		output_file="$2"
+		shift 2 || usage
+		[ -d "$output_file" ] && output_file="$output_file/$source_file.pch.cpp"
+		;;
+	(-o*)
+		usage
+		;;
+	(*)
+		output_file="$source_file.pch.cpp"
+		;;
+esac
+
+tmp=`mktemp`
+trap "rm '$tmp'" EXIT
+
+exec > "$output_file"
+
+echo -n '// generated code, consider not modifying!
+
+#include <stddef.h>
+
+#include our headers lol
+
+namespace doarr::local { // wrapped in the doarr namespace in order to rule out collisions with the guest_fn symbols below
+
+static const unsigned char gch_data[] = {
+'
+
+$compiler -x c++-header "$source_file" -o "$tmp" $implicit_flags "$@" || exit 1
+od -An -bvw32 "$tmp" | sed 's/[0-7][0-9][0-7]/0\0,/g'
+
+echo -n \
+'};
+
+static const char *compiler_args[] = {
+'
+
+printf '%s\0' $compiler $implicit_flags "$@" | awk '
+	BEGIN {
+		for(i = 0; i < 256; i++) {
+			c = sprintf("%c", i);
+			r[c] = (i >= 32 && i < 127) ? c : sprintf("\\x%02x", i);
+		}
+		r["\""] = "\\\"";
+		r["\\"] = "\\\\";
+		r["?"] = "?\"\"";
+		FS=""; RS="\0";
+	}
+	{
+		s = "";
+		for(i = 1; i <= NF; i++)
+			s = s r[$i];
+		printf " \"%s\",", s;
+	}
+'
+
+echo '
+};
+
+static struct guest_file file = {
+	gch_data,
+	sizeof gch_data,
+	compiler_args,
+	sizeof compiler_args / sizeof *compiler_args,
+	{},
+};
+
+} // namespace
+' | tr '\t' ' '
+
+$compiler -x c++-header "$source_file" -E -P -DDOARR_EXPORT=__DOARR_EXPORT__ $implicit_flags "$@" > "$tmp" || exit 1
+tr '\n' ' ' < "$tmp" | grep -Eo '__DOARR_EXPORT__(  *[A-Z_a-z][0-9A-Z_a-z]* *\()?' | tr -d '(' | {
+	some=false
+	while read a b
+	do some=true
+		case "$b" in
+		(''|decltype)
+			echo 'Error: DOARR_EXPORT must immediately precede the function name' >&2
+			echo 'Example: void DOARR_EXPORT foo(void *data) { ... }' >&2
+			exit 1
+			;;
+		(*)
+			echo 'extern "C" const doarr::guest_fn '$b' {{'
+			echo ' &doarr::local::file,'
+			echo ' "'$b'",'
+			echo '}};'
+			;;
+		esac
+	done
+	$some || echo 'Warning: no DOARR_EXPORT found' >&2
+}
