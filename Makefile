@@ -5,8 +5,8 @@ CXXFLAGS = $(FLAGS) -std=c++20 -Wno-sequence-point -Iinclude
 
 OBJS = build/call.o build/expr_all.o build/io.o
 
-C_HEADERS = src/*.h
-CXX_HEADERS = src/*.hpp include/doarr/*.hpp
+C_HEADERS = runtime/*.h
+CXX_HEADERS = runtime/*.hpp include/doarr/*.hpp
 ALL_HEADERS = $(C_HEADERS) $(CXX_HEADERS)
 PUBLIC_HEADERS = include/doarr/*
 
@@ -18,13 +18,13 @@ build/_: Makefile
 
 
 
-build/call.o: src/call.cpp $(ALL_HEADERS) build/_
+build/call.o: runtime/call.cpp $(ALL_HEADERS) build/_
 	g++ -c $(CXXFLAGS) $< -o $@
 
-build/expr_all.o: src/expr_all.cpp $(ALL_HEADERS) build/_
+build/expr_all.o: runtime/expr_all.cpp $(ALL_HEADERS) build/_
 	g++ -c $(CXXFLAGS) -fno-rtti $< -o $@
 
-build/io.o: src/io.c $(C_HEADERS) build/_
+build/io.o: runtime/io.c $(C_HEADERS) build/_
 	gcc -c $(CFLAGS) $< -o $@
 
 
@@ -39,7 +39,7 @@ build/libdoarr.a: build/doarr.o build/_
 
 
 build/preproc: preproc.template $(ALL_HEADERS) build/_
-	awk '{ if(/^#include o/) system("gcc -E -P -include src/guest_file.h -include include/doarr/guest_fn_wrapper_.hpp -x c /dev/null"); else print; }' $< > $@
+	awk '{ if(/^#include o/) system("gcc -E -P -include runtime/guest_file.h -include include/doarr/guest_fn_wrapper_.hpp -x c /dev/null"); else print; }' $< > $@
 	chmod +x $@
 
 

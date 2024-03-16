@@ -12,7 +12,7 @@
 
 namespace doarr {
 
-namespace src {
+namespace runtime {
 
 struct INTERNAL_VISIBILITY exs {
 	static std::size_t num_params(const exprs &es) noexcept;

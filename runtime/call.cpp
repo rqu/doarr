@@ -9,7 +9,7 @@ extern "C" {
 
 using doarr::exprs;
 using doarr::internal::guest_fn;
-using doarr::src::exs;
+using namespace doarr::runtime;
 
 namespace {
 
@@ -21,7 +21,7 @@ struct cache_key {
 	exprs call_args;
 
 	explicit cache_key(const guest_fn *fn, bool have_tmpl_args, exprs &&tmpl_args, exprs &&call_args) :
-		hash(doarr::src::hash_all((std::size_t) fn, have_tmpl_args, tmpl_args, call_args)),
+		hash(hash_all((std::size_t) fn, have_tmpl_args, tmpl_args, call_args)),
 		fn(fn),
 		have_tmpl_args(have_tmpl_args),
 		tmpl_args(std::move(tmpl_args)),

@@ -7,12 +7,12 @@ do
 	gcc "$@" -Iinclude --std=c++20 "$f" -o "$out" &
 done
 
-for f in src/*.hpp
+for f in runtime/*.hpp
 do
 	gcc "$@" -DINTERNAL_VISIBILITY='' -Iinclude --std=c++20 "$f" -o "$out" &
 done
 
-for f in src/*.h
+for f in runtime/*.h
 do
 	gcc "$@" -DINTERNAL_VISIBILITY='' -Iinclude -Dsize_t="unsigned long long" "$f" -o "$out" &
 done
