@@ -58,7 +58,7 @@ echo -n \
 static const char *compiler_args[] = {
 '
 
-printf '%s\0' $compiler $implicit_flags "$@" | awk '
+printf '%s\0' `which $compiler` $implicit_flags "$@" | awk '
 	BEGIN {
 		for(i = 0; i < 256; i++) {
 			c = sprintf("%c", i);

@@ -167,10 +167,10 @@ static noinline noreturn void execute_compiler(const char *cxx_file_name, const 
 
 	const char *compiler_name = *argv;
 
-	execvp(compiler_name, (char **) argv);
+	execv(compiler_name, (char **) argv);
 
 	// execve only returns on error
-	perror("Error while executing compiler: execvp");
+	perror("Error while executing compiler: execv");
 
 	_exit(127);
 }
