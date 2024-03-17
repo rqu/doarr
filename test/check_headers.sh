@@ -17,12 +17,12 @@ done
 
 for f in runtime/*.h
 do
-	$cxx $rt -include stddef.h "$f" -o "$out" &
+	$cxx $rt "$f" -o "$out" &
 done
 
 for f in dcc/*.h
 do
-	$cc -include stddef.h "$f" -o "$out" &
+	$cc "$f" -o "$out" &
 done
 
 $cxx -Iinclude "test/compatibility.cpp" -o "$out" &

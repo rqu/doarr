@@ -1,4 +1,3 @@
-#include <stddef.h>
 #include "io.h"
 #include "guest_file.h"
 
@@ -6,6 +5,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,14 +112,12 @@ static void tmp_path_inc(struct doarr_io_ctx *ctx) {
 	(*c)++;
 }
 
-static int full_write(int fd, const unsigned char *buf, size_t count) {
-	while(count) {
-		ssize_t w = write(fd, buf, count);
-		if(w == -1 || w == 0) {
+static int full_write(int fd, const unsigned char *begin, const unsigned char *end) {
+	while(begin != end) {
+		ssize_t w = write(fd, begin, end - begin);
+		if(w == -1 || w == 0)
 			return -1;
-		}
-		buf += w;
-		count -= w;
+		begin += w;
 	}
 	return 0;
 }
@@ -143,7 +141,7 @@ const char *doarr_extract_precompiled_or_null(struct doarr_io_ctx *ctx, struct g
 		perror("Cannot extract precompiled header: open");
 		return NULL;
 	}
-	if(full_write(fd, file->gch_data, file->gch_size) < 0) {
+	if(full_write(fd, file->gch_data, file->gch_data_end) < 0) {
 		perror("Cannot extract precompiled header: write");
 		return NULL;
 	}

@@ -23,8 +23,6 @@ static const char generated_file_prolog[] =
 	"#warning \"This file is not intended to be compiled with a C++ compiler\"\n"
 	"#endif\n"
 	"\n"
-	"#include <stddef.h>\n"
-	"\n"
 #include "../build/runtime_struct_defs.str.h"
 	"\n"
 	"#endif\n"
@@ -46,7 +44,7 @@ static const char generated_file_epilog[] =
 	"\n"
 	"static struct guest_file doarr__file_%i = {\n"
 	" .gch_data = %s,\n"
-	" .gch_size = %zu,\n"
+	" .gch_data_end = %s + %zu,\n"
 	" .compiler_args = doarr__compiler_args,\n"
 	" .num_compiler_args = sizeof doarr__compiler_args / sizeof *doarr__compiler_args,\n"
 	" .pos_between_args = %i,\n"
@@ -105,7 +103,7 @@ static bool generate_c_part1(FILE *out, int file_index, FILE *in, const char *co
 static void generate_c_part2_bin(FILE *out, int file_index, size_t data_size, int pos_between_args) {
 	static const char data_symbol[] = "_binary_"DOARR_PRECOMPILED"_start";
 	fprintf(out, "\nextern const unsigned char %s[];\n", data_symbol);
-	fprintf(out, generated_file_epilog, file_index, data_symbol, data_size, pos_between_args);
+	fprintf(out, generated_file_epilog, file_index, data_symbol, data_symbol, data_size, pos_between_args);
 }
 
 static void generate_c_part2_txt(FILE *out, int file_index, const unsigned char *data, size_t data_size, int pos_between_args) {
@@ -113,7 +111,7 @@ static void generate_c_part2_txt(FILE *out, int file_index, const unsigned char 
 	char data_symbol[sizeof data_symbol_f + 3 * sizeof file_index];
 	sprintf(data_symbol, data_symbol_f, file_index);
 	fprintf(out, "\nstatic const unsigned char %s[%zu];\n", data_symbol, data_size); // tentative definition
-	fprintf(out, generated_file_epilog, file_index, data_symbol, data_size, pos_between_args);
+	fprintf(out, generated_file_epilog, file_index, data_symbol, data_symbol, data_size, pos_between_args);
 	fprintf(out, "\nstatic const unsigned char %s[%zu] = \"\\\n", data_symbol, data_size);
 	enum {
 		bytes_per_line = 32, // bytes of input
