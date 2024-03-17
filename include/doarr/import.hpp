@@ -22,42 +22,27 @@ class imported : internal::guest_fn {
 		exprs tmpl_args;
 
 		explicit instance(const imported *fn, exprs &&tmpl_args) : fn(fn), tmpl_args(std::move(tmpl_args)) {}
+		explicit instance(const instance &) = delete;
+		explicit instance(instance &&) = delete;
+		void operator =(const instance &) = delete;
+		void operator =(instance &&) = delete;
 
 	public:
 		void operator()(auto&&... args) && {
-			call_void(fn, true, std::move(tmpl_args), exprs{decltype(args)(args).to_expr()...});
-		}
-
-		auto call_v(auto&&... args) && {
-			// TODO call function and return value
-			static_assert(sizeof...(args) < 0, "not implemented yet");
-			return nullptr;
-		}
-
-		auto call_r(auto&&... args) && {
-			// TODO call function and return reference
-			static_assert(sizeof...(args) < 0, "not implemented yet");
-			return nullptr;
+			call(fn, true, std::move(tmpl_args), exprs{decltype(args)(args).to_expr()...});
 		}
 
 		friend imported;
 	};
 
+	explicit imported(const imported &) = delete;
+	explicit imported(imported &&) = delete;
+	void operator =(const imported &) = delete;
+	void operator =(imported &&) = delete;
+
 public:
 	void operator()(auto&&... args) const {
-		call_void(this, false, exprs{}, exprs{decltype(args)(args).to_expr()...});
-	}
-
-	auto call_v(auto&&... args) const {
-		// TODO call function and return value
-		static_assert(sizeof...(args) < 0, "not implemented yet");
-		return nullptr;
-	}
-
-	auto call_r(auto&&... args) const {
-		// TODO call function and return reference
-		static_assert(sizeof...(args) < 0, "not implemented yet");
-		return nullptr;
+		call(this, false, exprs{}, exprs{decltype(args)(args).to_expr()...});
 	}
 
 #ifdef __cpp_multidimensional_subscript

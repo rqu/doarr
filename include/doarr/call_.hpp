@@ -2,7 +2,7 @@
 #define DOARR_CALL_HPP_
 
 /*
- * Functions called by import.hpp header-only types and defined in call.cpp.
+ * Function called by import.hpp header-only types and defined in call.cpp.
  */
 
 #include "expr_base.hpp"
@@ -11,7 +11,7 @@
 
 namespace doarr {
 
-// may be thrown by the functions below
+// may be thrown by the function below
 struct compilation_error : std::exception {};
 
 namespace internal {
@@ -21,7 +21,7 @@ struct guest_fn {
 	const char *const name;
 };
 
-void call_void(const guest_fn *fn, bool have_tmpl_args, exprs &&tmpl_args, exprs &&call_args);
+void call(const guest_fn *fn, bool have_tmpl_args, exprs &&tmpl_args, exprs &&call_args);
 
 }
 

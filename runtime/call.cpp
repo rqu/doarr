@@ -77,7 +77,7 @@ struct guest_file *fn_file(const guest_fn *fn) {
 	return (struct guest_file *) fn->file;
 }
 
-void compile_void(const guest_fn *fn, bool have_tmpl_args, const cache_key &k, cache_value &out_v) {
+void compile(const guest_fn *fn, bool have_tmpl_args, const cache_key &k, cache_value &out_v) {
 	struct doarr_io_ctx *ctx = GLOBAL_io_ctx();
 
 	const char *hdr = doarr_extract_precompiled_or_null(ctx, fn_file(fn));
@@ -113,7 +113,7 @@ void compile_void(const guest_fn *fn, bool have_tmpl_args, const cache_key &k, c
 
 }
 
-void doarr::internal::call_void(const guest_fn *fn, bool have_tmpl_args, exprs &&tmpl_args, exprs &&call_args) {
+void doarr::internal::call(const guest_fn *fn, bool have_tmpl_args, exprs &&tmpl_args, exprs &&call_args) {
 	if(exs::num_params(tmpl_args))
 		throw std::logic_error("Template argument depends on a dynamic value");
 	auto params_uniq = std::make_unique_for_overwrite<any[]>(exs::num_params(call_args));
@@ -124,7 +124,7 @@ void doarr::internal::call_void(const guest_fn *fn, bool have_tmpl_args, exprs &
 	auto &[k, v] = *iter;
 	if(miss) {
 		try {
-			compile_void(fn, have_tmpl_args, k, v);
+			compile(fn, have_tmpl_args, k, v);
 		} catch(...) {
 			GLOBAL_cache.erase(iter);
 			throw;
