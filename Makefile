@@ -10,7 +10,9 @@ CXX_HEADERS = runtime/*.hpp include/doarr/*.hpp
 ALL_HEADERS = $(C_HEADERS) $(CXX_HEADERS)
 PUBLIC_HEADERS = include/doarr/*
 
-all: build/libdoarr.a build/preproc
+DCC = build/dcc
+
+all: build/libdoarr.a $(DCC)
 
 build/_: Makefile
 	mkdir -p build
@@ -38,26 +40,28 @@ build/libdoarr.a: build/doarr.o build/_
 
 
 
-build/preproc: preproc.template $(ALL_HEADERS) build/_
-	awk '{ if(/^#include o/) system("gcc -E -P -include runtime/guest_file.h -include include/doarr/guest_fn_wrapper_.hpp -x c /dev/null"); else print; }' $< > $@
-	chmod +x $@
+$(DCC): dcc/* build/runtime_struct_defs.str.h build/_
+	$(CC) $(CFLAGS) dcc/*.c -o $@
+
+build/runtime_struct_defs.str.h: dcc/runtime_struct_defs.h $(C_HEADERS) build/_
+	$(CC) -E -P $< | sed 's/.*/"\0\\n"/' > $@
 
 
 
 test: check_headers build/test
 	build/test
 
-TEST_CXXINPUT = test/host.cpp build/test_guest_noarrless.pch.cpp build/test_guest_mininoarr.pch.cpp
+TEST_CXXINPUT = test/host.cpp build/test_guest_noarrless.o build/test_guest_mininoarr.o
 TEST_CXXFLAGS = -std=c++20 -Iinclude -Og -Wall -Wextra
 
 build/test: $(TEST_CXXINPUT) $(PUBLIC_HEADERS) build/libdoarr.a build/_
 	g++ $(TEST_CXXINPUT) build/libdoarr.a -o $@ $(TEST_CXXFLAGS)
 
-build/test_guest_noarrless.pch.cpp: test/guest_noarrless.cpp build/preproc $(PUBLIC_HEADERS) build/_
-	build/preproc $< -o $@ $(TEST_CXXFLAGS)
+build/test_guest_noarrless.o: test/guest_noarrless.cpp $(DCC) $(PUBLIC_HEADERS) build/_
+	$(DCC) -c $< -o $@ $(TEST_CXXFLAGS)
 
-build/test_guest_mininoarr.pch.cpp: test/guest_mininoarr.cpp build/preproc $(PUBLIC_HEADERS) build/_
-	build/preproc $< -o $@ $(TEST_CXXFLAGS)
+build/test_guest_mininoarr.o: test/guest_mininoarr.cpp $(DCC) $(PUBLIC_HEADERS) build/_
+	$(DCC) -c $< -o $@ $(TEST_CXXFLAGS)
 
 
 
