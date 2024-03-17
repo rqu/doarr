@@ -157,6 +157,15 @@ bool dcc_perror_s(const char *msg, const char *arg) {
 	return false;
 }
 
+bool dcc_err_a(const char *msg, const char *const *args) {
+	FILE *f = stderr;
+	fprintf(f, "%s: %s", dcc_argv0, msg);
+	for(size_t i = 0; args[i]; i++)
+		fputc(' ', f), fputs(args[i], f);
+	fputc('\n', f);
+	return false;
+}
+
 void dcc_oom(void) {
 	static const char msg[] = "dcc: out of memory\n";
 	// do not use stdio, since that could fail too

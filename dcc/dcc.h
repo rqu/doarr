@@ -99,6 +99,7 @@ static inline bool always_false(int unused) { (void) unused; return false; }
 bool dcc_err(const char *msg);
 bool dcc_perror(const char *msg);
 bool dcc_perror_s(const char *msg, const char *arg);
+bool dcc_err_a(const char *msg, const char *const *args);
 void dcc_oom(void);
 
 static inline const char *my_basename(const char *path) {

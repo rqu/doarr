@@ -179,6 +179,10 @@ static noreturn void exec_cxx(const struct config *config, const char *argv1, co
 	for(int i = input_file.pos_between_opts; i < num_compiler_args; i++)
 		*arg_ptr++ = compiler_args[i].arg;
 	*arg_ptr = NULL;
+
+	if(config->verbose)
+		dcc_err_a("Executing compiler:", arg_buff);
+
 	dcc_fexecv(config->tools[ToolCXX].exec_fd, arg_buff);
 }
 
@@ -213,6 +217,8 @@ static bool run_tool(const struct config *config, enum tool_id ti, const char **
 			if(fchdir(config->tmp_fd))
 				dcc_perror(RT_ERR "run_tool fchdir"), _exit(127);
 			*args = tool.name;
+			if(config->verbose)
+				dcc_err_a("Executing tool:", args);
 			dcc_fexecv(tool.exec_fd, args);
 		case Err:
 			dcc_perror_s(RT_ERR "run_tool fork", *args);
@@ -234,6 +240,7 @@ static pid_t start_precompiler(const struct config *config, struct input_file fi
 }
 
 static pid_t start_preprocessor(const struct config *config, struct input_file file, const char **arg_buff, FILE **out_out_file) {
+	bool discard_stderr = !config->verbose;
 	enum { ReadEnd, WriteEnd };
 	int pp[2];
 	if(pipe(pp)) {
@@ -245,7 +252,7 @@ static pid_t start_preprocessor(const struct config *config, struct input_file f
 		case Child:
 			if(dup2(pp[WriteEnd], STDOUT_FILENO) < 0)
 				dcc_perror(RT_ERR "preproc dup2 stdout"), _exit(127);
-			if(dup2(config->dev_null, STDERR_FILENO) < 0)
+			if(discard_stderr && dup2(config->dev_null, STDERR_FILENO) < 0)
 				dcc_perror(RT_ERR "preproc dup2 stderr"), _exit(127);
 			close(pp[ReadEnd]);
 			close(pp[WriteEnd]);
@@ -295,6 +302,8 @@ static bool process_single_file(const struct config *config, int file_index, str
 
 	int pos_between_rt_args = file.pos_between_opts;
 	build_runtime_args(config, arg_buff, &pos_between_rt_args);
+	if(config->verbose)
+		dcc_err_a("Runtime compiler args:", arg_buff);
 	if(!generate_c_part1(c_file, file_index, preprocessor_output, arg_buff, &have_any_functions))
 		goto error;
 
@@ -401,12 +410,12 @@ error:
 	dcc_errf("error while processing '%s'", file.name);
 	if(c_file)
 		fclose(c_file);
+	if(preprocessor_output)
+		fclose(preprocessor_output);
 	if(preprocessor_pid != -1)
 		dcc_wait(&preprocessor_pid, "preprocessor");
 	if(precompiler_pid != -1)
 		dcc_wait(&precompiler_pid, "precompiler");
-	if(preprocessor_output)
-		fclose(preprocessor_output);
 	dcc_unlink_if_ex(config->tmp_fd, tmp_pch);
 	dcc_unlink_if_ex(config->tmp_fd, tmp_c);
 	dcc_unlink_if_ex(config->tmp_fd, tmp_o);
