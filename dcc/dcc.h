@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define DOARR_PRECOMPILED "doarr__precompiled"
 

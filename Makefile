@@ -79,8 +79,8 @@ build/test_guest_mininoarr.o: test/guest_mininoarr.cpp $(DCC) $(PUBLIC_HEADERS) 
 
 
 
-check_headers: $(RT_HEADERS)
-	sh test/check_headers.sh $(FLAGS)
+check_headers: $(RT_HEADERS) dcc/*.h
+	sh test/check_headers.sh "`echo $(CC) $(CFLAGS)`" "`echo $(CXX) $(CXXFLAGS)`" "`echo $(RT_FLAGS)`"
 
 clean:
 	rm -rvf build

@@ -1,20 +1,28 @@
-out=`mktemp`
-trap "rm '$out'" EXIT
+cc="$1 -c -xc"
+cxx="$2 -c -xc++ --std=c++20"
+rt="$3"
+
+out="/dev/null"
 
 for f in include/doarr/*.hpp
 do
-	gcc "$@" --std=c++20 "$f" -o "$out" &
-	gcc "$@" -Iinclude --std=c++20 "$f" -o "$out" &
+	$cxx "$f" -o "$out" &
+	$cxx -Iinclude "$f" -o "$out" &
 done
 
 for f in runtime/*.hpp
 do
-	gcc "$@" -DINTERNAL_VISIBILITY='' -Iinclude --std=c++20 "$f" -o "$out" &
+	$cxx $rt -Iinclude "$f" -o "$out" &
 done
 
 for f in runtime/*.h
 do
-	gcc "$@" -DINTERNAL_VISIBILITY='' -Iinclude -Dsize_t="unsigned long long" "$f" -o "$out" &
+	$cxx $rt -include stddef.h "$f" -o "$out" &
+done
+
+for f in dcc/*.h
+do
+	$cc -include stddef.h "$f" -o "$out" &
 done
 
 wait
