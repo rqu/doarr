@@ -67,6 +67,10 @@ doarr::guest_fn::instance doarr::guest_fn::operator[](expr_pack args) const {
 	return instance{this, std::move(args)};
 }
 
-#define DOARR_IMPORT extern "C" const ::doarr::guest_fn
+namespace doarr {
+
+using imported = guest_fn;
+
+}
 
 #endif

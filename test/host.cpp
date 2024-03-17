@@ -63,14 +63,14 @@ void assert_eq_impl(auto a, auto b, const char *a_name, const char *b_name) {
 
 ////////////////////////////////////////////////////////////////
 
-DOARR_IMPORT empty;
+extern "C" doarr::imported empty;
 
 void test_empty() {
 	empty();
 }
 
 
-DOARR_IMPORT add;
+extern "C" doarr::imported add;
 
 void test_add_dynamic(int a, int b) {
 	int c = 999999999;
@@ -97,7 +97,7 @@ void test_add_ds(int a, int b) {
 }
 
 
-DOARR_IMPORT addt;
+extern "C" doarr::imported addt;
 
 void test_add_tmpl(int a, int b) {
 	int c = 999999999;
@@ -109,7 +109,7 @@ void test_add_tmpl(int a, int b) {
 using doarr::noarr;
 
 
-DOARR_IMPORT nempty;
+extern "C" doarr::imported nempty;
 
 void test_noarr_scalar() {
 	nempty(noarr.scalar["float"]());

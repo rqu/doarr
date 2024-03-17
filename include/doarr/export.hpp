@@ -10,9 +10,10 @@
 // and noarr proto-structures, so we include them here.
 #include "any_.hpp"
 
-// define DOARR_EXPORT as empty macro unless already defined otherwise via commandline
-#ifndef DOARR_EXPORT
-#define DOARR_EXPORT
-#endif
+namespace doarr {
+
+using exported = void;
+
+}
 
 #endif

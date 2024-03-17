@@ -90,6 +90,6 @@ namespace noarr {
 	constexpr lit_t<I> lit;
 }
 
-void DOARR_EXPORT nempty(auto t) {
+doarr::exported nempty(auto t) {
 	(void) t;
 }
