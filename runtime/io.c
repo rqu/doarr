@@ -159,11 +159,18 @@ const char *doarr_extract_precompiled_or_null(struct doarr_io_ctx *ctx, struct g
 static noinline noreturn void execute_compiler(const char *cxx_file_name, const char *so_file_name, const struct guest_file *file) {
 	size_t n = file->num_compiler_args;
 	const char *argv[n + 4]; // VLA!
-	memcpy(argv, file->compiler_args, n * sizeof *argv);
-	argv[n++] = cxx_file_name;
-	argv[n++] = "-o";
-	argv[n++] = so_file_name;
-	argv[n++] = NULL;
+	{
+		size_t k = file->pos_between_args;
+		const char *const *in_arg = file->compiler_args, **out_arg = argv;
+		for(size_t i = 0; i < k; i++)
+			*out_arg++ = *in_arg++;
+		*out_arg++ = cxx_file_name;
+		for(size_t i = k; i < n; i++)
+			*out_arg++ = *in_arg++;
+		*out_arg++ = "-o";
+		*out_arg++ = so_file_name;
+		*out_arg++ = NULL;
+	}
 
 	const char *compiler_name = *argv;
 

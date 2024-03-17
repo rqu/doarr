@@ -13,6 +13,7 @@ struct guest_file {
 	size_t gch_size;
 	const char *const *compiler_args;
 	size_t num_compiler_args;
+	size_t pos_between_args;
 	struct tmp_path gch_tmp_path;
 };
 

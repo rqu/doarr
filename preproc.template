@@ -85,6 +85,7 @@ static struct guest_file file = {
 	sizeof gch_data,
 	compiler_args,
 	sizeof compiler_args / sizeof *compiler_args,
+	1,
 	{},
 };
 
