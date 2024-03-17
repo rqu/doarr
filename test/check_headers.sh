@@ -25,4 +25,6 @@ do
 	$cc -include stddef.h "$f" -o "$out" &
 done
 
+$cxx -Iinclude "test/compatibility.cpp" -o "$out" &
+
 wait

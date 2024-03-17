@@ -1,6 +1,6 @@
 #include "../runtime/guest_file.h"
 
 struct guest_fn {
-	struct guest_file *file;
-	const char *name;
+	void *const file; // points to struct guest_file
+	const char *const name;
 };

@@ -79,7 +79,7 @@ build/test_guest_mininoarr.o: test/guest_mininoarr.cpp $(DCC) $(PUBLIC_HEADERS) 
 
 
 
-check_headers: $(RT_HEADERS) dcc/*.h
+check_headers: $(RT_HEADERS) dcc/*.h test/compatibility.cpp
 	sh test/check_headers.sh "`echo $(CC) $(CFLAGS)`" "`echo $(CXX) $(CXXFLAGS)`" "`echo $(RT_FLAGS)`"
 
 clean:
