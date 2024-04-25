@@ -81,7 +81,7 @@ bool dcc_write(int fd, const char* buf, size_t count) {
 }
 
 void dcc_close(int fd, const char *msg) {
-	if(!close(fd))
+	if(close(fd))
 		dcc_perror_s(RT_ERR "close", msg);
 }
 
@@ -143,7 +143,7 @@ FILE *dcc_fopenat(int dir_fd, const char *basename, int flags, int mode) {
 const char *dcc_argv0;
 
 bool dcc_err(const char *msg) {
-	fputs(msg, stderr);
+	fprintf(stderr, "%s: %s\n", dcc_argv0, msg);
 	return false;
 }
 
