@@ -42,9 +42,45 @@ struct fn : expr {
 	}
 };
 
+template<Expr Ret, Expr Args>
+struct var_fn : expr {
+	explicit var_fn(Expr auto &&e) : expr(decltype(e)(e)) {}
+	Ret operator()(Expr<Args> auto &&... args) const & {
+		return Ret{call_expr(std::move(*this), exprs{(as_expr<Args>)(decltype(args)(args))...})};
+	}
+	Ret operator()(Expr<Args> auto &&... args) && {
+		return Ret{call_expr(std::move(*this), exprs{(as_expr<Args>)(decltype(args)(args))...})};
+	}
+};
+
 template<Expr Ret, Expr... Args>
 struct tmpl : expr {
 	explicit tmpl(Expr auto &&e) : expr(decltype(e)(e)) {}
+#ifdef __cpp_multidimensional_subscript
+	Ret operator[](Expr<Args> auto &&... args) const & {
+		return Ret{inst_expr(std::move(*this), exprs{(as_expr<Args>)(decltype(args)(args))...})};
+	}
+	Ret operator[](Expr<Args> auto &&... args) && {
+		return Ret{inst_expr(std::move(*this), exprs{(as_expr<Args>)(decltype(args)(args))...})};
+	}
+#endif
+private:
+	struct args_pack : exprs {
+		// implicit - to allow construction using just braces (or even without braces in case of single Args)
+		constexpr args_pack(Expr<Args> auto &&... args) : exprs{(as_expr<Args>)(decltype(args)(args))...} {}
+	};
+public:
+	Ret operator[](args_pack args) const & {
+		return Ret{inst_expr(std::move(*this), std::move(args))};
+	}
+	Ret operator[](args_pack args) && {
+		return Ret{inst_expr(std::move(*this), std::move(args))};
+	}
+};
+
+template<Expr Ret, Expr Args>
+struct var_tmpl : expr {
+	explicit var_tmpl(Expr auto &&e) : expr(decltype(e)(e)) {}
 #ifdef __cpp_multidimensional_subscript
 	Ret operator[](Expr<Args> auto &&... args) const & {
 		return Ret{inst_expr(std::move(*this), exprs{(as_expr<Args>)(decltype(args)(args))...})};
@@ -118,6 +154,20 @@ struct tmpl_from {
 	using to = tmpl<Ret, Args...>;
 };
 
+template<Expr Args>
+struct var_fn_from {
+	var_fn_from() = delete;
+	template<Expr Ret>
+	using to = var_fn<Ret, Args>;
+};
+
+template<Expr Args>
+struct var_tmpl_from {
+	var_tmpl_from() = delete;
+	template<Expr Ret>
+	using to = var_tmpl<Ret, Args>;
+};
+
 //
 
 const struct {
@@ -125,6 +175,10 @@ const struct {
 	const tmpl_from<type>::to<fn_from<>::to<noarr_struct>> scalar {qname_expr("noarr::scalar")};
 	const tmpl_from<dim>::to<fn_from<>::to<proto_struct>> vector {qname_expr("noarr::vector")};
 	const tmpl_from<dim>::to<fn_from<num>::to<proto_struct>> sized_vector {qname_expr("noarr::sized_vector")};
+	const var_tmpl_from<dim>::to<var_fn_from<num>::to<proto_struct>> bcast {qname_expr("noarr::bcast")};
+	const var_tmpl_from<dim>::to<fn_from<>::to<proto_struct>> hoist {qname_expr("noarr::hoist")};
+	const var_tmpl_from<dim>::to<var_fn_from<num>::to<proto_struct>> set_length {qname_expr("noarr::set_length")};
+	const tmpl_from<dim, dim, dim>::to<fn_from<num>::to<proto_struct>> into_blocks {qname_expr("noarr::into_blocks")};
 	const fn_from<noarr_struct, ptr>::to<expr> make_bag {qname_expr("noarr::make_bag")};
 } noarr;
 
